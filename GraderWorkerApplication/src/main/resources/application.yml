@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: GraderWorkerApplication
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: admin
+    password: admin
+    virtual-host: /
+
+rabbitmq:
+  queue:
+    submission: submissionQueue
+    result: resultQueue

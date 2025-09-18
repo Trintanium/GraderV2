@@ -1,0 +1,15 @@
+FROM ubuntu:22.04
+WORKDIR /workspace
+
+RUN apt-get update && apt-get install -y \
+    python3 \
+    openjdk-17-jdk \
+    gcc \
+    g++ \
+    nodejs \
+    npm \
+    bash \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+CMD ["bash"]

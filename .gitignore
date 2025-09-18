@@ -1,0 +1,53 @@
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Node / Frontend ---
+node_modules/
+dist/
+.env
+*.local
+
+# --- Java / Spring Boot / Backend ---
+/target/
+*.class
+*.jar
+*.war
+*.log
+*.iml
+/.idea/
+/.vscode/
+/out/
+
+# --- Gradle / Maven ---
+.gradle/
+build/
+*.keystore
+
+# --- Docker ---
+docker-compose.override.yml
+*.env
+*.log
+*.pid
+
+# --- Logs ---
+logs/
+*.log
+
+# --- Temporary Files ---
+*.tmp
+*.swp
+*.swo
+
+# --- Coverage ---
+coverage/
+*.lcov
+
+# --- Nginx ---
+nginx/*.log
+
+# --- IDE / Editors ---
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project

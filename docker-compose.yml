@@ -1,0 +1,159 @@
+version: "3.9"
+
+services:
+  # Database
+  grader-database:
+    image: postgres:15
+    container_name: grader-database
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmqctl status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # Redis
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # Backend
+  grader-backend:
+    build:
+      context: ./GraderBackend
+      dockerfile: Dockerfile
+    container_name: grader-backend
+    depends_on:
+      grader-database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: ${DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_REDIS_HOST: ${REDIS_HOST}
+      SPRING_RABBITMQ_HOST: ${RABBIT_HOST}
+      SPRING_RABBITMQ_PORT: ${RABBIT_PORT}
+      SPRING_RABBITMQ_USERNAME: ${RABBIT_USERNAME}
+      SPRING_RABBITMQ_PASSWORD: ${RABBIT_PASSWORD}
+      JWT_KEY_ID: ${JWT_KEY_ID}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+      AWS_SECRET_KEY: ${AWS_SECRET_KEY}
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    healthcheck:
+      test:
+        ["CMD", "curl", "-f", "http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # Worker
+  grader-worker:
+    build:
+      context: ./GraderWorkerApplication
+      dockerfile: docker/Dockerfile.worker
+    container_name: grader-worker
+    depends_on:
+      grader-database:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      grader-backend:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: ${DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_REDIS_HOST: ${REDIS_HOST}
+      SPRING_RABBITMQ_HOST: ${RABBIT_HOST}
+      SPRING_RABBITMQ_PORT: ${RABBIT_PORT}
+      SPRING_RABBITMQ_USERNAME: ${RABBIT_USERNAME}
+      SPRING_RABBITMQ_PASSWORD: ${RABBIT_PASSWORD}
+      JWT_KEY_ID: ${JWT_KEY_ID}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+      AWS_SECRET_KEY: ${AWS_SECRET_KEY}
+    env_file:
+      - .env
+
+  # Runner
+  grader-runner:
+    build:
+      context: ./GraderWorkerApplication
+      dockerfile: docker/Dockerfile.runner
+    container_name: grader-runner
+    stdin_open: true
+    tty: true
+    volumes:
+      - grader-runner-workspace:/workspace
+    env_file:
+      - .env
+
+  # Frontend served by Nginx
+  grader-frontend:
+    build:
+      context: ./GraderFrontend
+      dockerfile: Dockerfile
+    container_name: grader-frontend
+    ports:
+      - "80:80" # <-- frontend accessible on host port 80
+    depends_on:
+      grader-backend:
+        condition: service_healthy
+    env_file:
+      - .env
+
+volumes:
+  pgdata:
+  grader-runner-workspace:

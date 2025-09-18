@@ -1,0 +1,9 @@
+[submodule "GraderBackend"]
+	path = GraderBackend
+	url = ./GraderBackend
+[submodule "GraderFrontend"]
+	path = GraderFrontend
+	url = ./GraderFrontend
+[submodule "GraderWorkerApplication"]
+	path = GraderWorkerApplication
+	url = ./GraderWorkerApplication
