@@ -63,7 +63,19 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return (SecurityFilterChain)http.csrf(csrf -> csrf.disable()).cors(cors -> cors.configurationSource(this.corsConfigurationSource())).authorizeHttpRequests(auth -> ((AuthorizeHttpRequestsConfigurer.AuthorizedUrl)((AuthorizeHttpRequestsConfigurer.AuthorizedUrl)((AuthorizeHttpRequestsConfigurer.AuthorizedUrl)((AuthorizeHttpRequestsConfigurer.AuthorizedUrl)((AuthorizeHttpRequestsConfigurer.AuthorizedUrl)((AuthorizeHttpRequestsConfigurer.AuthorizedUrl)((AuthorizeHttpRequestsConfigurer.AuthorizedUrl)((AuthorizeHttpRequestsConfigurer.AuthorizedUrl)auth.requestMatchers(new String[]{"/auth/**"})).permitAll().requestMatchers(new String[]{"/user/**"})).permitAll().requestMatchers(new String[]{"/problem/**"})).permitAll().requestMatchers(new String[]{"/tag/**"})).permitAll().requestMatchers(new String[]{"/problem-tags/**"})).permitAll().requestMatchers(new String[]{"/testcase/**"})).permitAll().requestMatchers(new String[]{"/submission/**"})).permitAll().anyRequest()).authenticated()).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).addFilterBefore((Filter)this.jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class).build();
+        http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(this.corsConfigurationSource()))
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
+
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
     @Bean
