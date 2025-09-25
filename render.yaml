@@ -3,57 +3,54 @@ services:
     name: grader-database
     env: docker
     plan: free
-    dockerComposePath: ./docker-compose.yml
-    autoDeploy: true
+    dockerImage: postgres:15
+    startCommand: ""
     envVars:
-      - key: DB_NAME
+      - key: POSTGRES_DB
         fromSecret: DB_NAME
-      - key: DB_USERNAME
+      - key: POSTGRES_USER
         fromSecret: DB_USERNAME
-      - key: DB_PASSWORD
+      - key: POSTGRES_PASSWORD
         fromSecret: DB_PASSWORD
-    startCommand: "" 
 
   - type: web
     name: rabbitmq
     env: docker
     plan: free
-    dockerComposePath: ./docker-compose.yml
-    autoDeploy: true
+    dockerImage: rabbitmq:3.13-management
+    startCommand: ""
     envVars:
-      - key: RABBIT_USERNAME
+      - key: RABBITMQ_DEFAULT_USER
         fromSecret: RABBIT_USERNAME
-      - key: RABBIT_PASSWORD
+      - key: RABBITMQ_DEFAULT_PASS
         fromSecret: RABBIT_PASSWORD
-    startCommand: "" 
 
   - type: web
     name: redis
     env: docker
     plan: free
-    dockerComposePath: ./docker-compose.yml
-    autoDeploy: true
-    startCommand: "" 
+    dockerImage: redis:7
+    startCommand: ""
 
   - type: web
     name: grader-backend
     env: docker
     plan: free
-    dockerComposePath: ./docker-compose.yml
-    autoDeploy: true
+    buildCommand: "cd GraderBackend && ./gradlew build"
+    startCommand: "java -jar GraderBackend/build/libs/backend.jar"
     envVars:
       - key: SPRING_DATASOURCE_URL
-        fromSecret: DB_URL
+        value: "jdbc:postgresql://grader-database:5432/${DB_NAME}"
       - key: SPRING_DATASOURCE_USERNAME
         fromSecret: DB_USERNAME
       - key: SPRING_DATASOURCE_PASSWORD
         fromSecret: DB_PASSWORD
       - key: SPRING_REDIS_HOST
-        fromSecret: REDIS_HOST
+        value: "redis"
       - key: SPRING_RABBITMQ_HOST
-        fromSecret: RABBIT_HOST
+        value: "rabbitmq"
       - key: SPRING_RABBITMQ_PORT
-        fromSecret: RABBIT_PORT
+        value: "5672"
       - key: SPRING_RABBITMQ_USERNAME
         fromSecret: RABBIT_USERNAME
       - key: SPRING_RABBITMQ_PASSWORD
@@ -68,27 +65,26 @@ services:
         fromSecret: AWS_ACCESS_KEY
       - key: AWS_SECRET_KEY
         fromSecret: AWS_SECRET_KEY
-    startCommand: "java -jar /app/backend.jar"
 
   - type: web
     name: grader-worker
     env: docker
     plan: free
-    dockerComposePath: ./docker-compose.yml
-    autoDeploy: true
+    buildCommand: "cd GraderWorkerApplication && ./gradlew build"
+    startCommand: "sh -c 'sleep 10 && java -jar GraderWorkerApplication/build/libs/worker.jar'"
     envVars:
       - key: SPRING_DATASOURCE_URL
-        fromSecret: DB_URL
+        value: "jdbc:postgresql://grader-database:5432/${DB_NAME}"
       - key: SPRING_DATASOURCE_USERNAME
         fromSecret: DB_USERNAME
       - key: SPRING_DATASOURCE_PASSWORD
         fromSecret: DB_PASSWORD
       - key: SPRING_REDIS_HOST
-        fromSecret: REDIS_HOST
+        value: "redis"
       - key: SPRING_RABBITMQ_HOST
-        fromSecret: RABBIT_HOST
+        value: "rabbitmq"
       - key: SPRING_RABBITMQ_PORT
-        fromSecret: RABBIT_PORT
+        value: "5672"
       - key: SPRING_RABBITMQ_USERNAME
         fromSecret: RABBIT_USERNAME
       - key: SPRING_RABBITMQ_PASSWORD
@@ -103,20 +99,26 @@ services:
         fromSecret: AWS_ACCESS_KEY
       - key: AWS_SECRET_KEY
         fromSecret: AWS_SECRET_KEY
-    startCommand: "sh -c 'sleep 10 && java -jar /app/worker.jar'"
 
   - type: web
     name: grader-runner
     env: docker
     plan: free
-    dockerComposePath: ./docker-compose.yml
-    autoDeploy: true
-    startCommand: "sh -c 'tail -f /dev/null'" 
+    buildCommand: "cd GraderWorkerApplication && ./gradlew build"
+    startCommand: "sh -c 'tail -f /dev/null'"
+    volumes:
+      - name: grader-runner-workspace
+        mountPath: /workspace
 
   - type: web
     name: grader-frontend
     env: docker
     plan: free
-    dockerComposePath: ./docker-compose.yml
-    autoDeploy: true
+    buildCommand: "cd GraderFrontend && npm install && npm run build"
     startCommand: 'sh -c ''sleep 10 && nginx -g "daemon off;"'''
+    envVars:
+      - key: BACKEND_URL
+        value: "http://grader-backend:8080"
+
+volumes:
+  - name: grader-runner-workspace
