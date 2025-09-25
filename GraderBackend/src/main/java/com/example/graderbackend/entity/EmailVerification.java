@@ -17,7 +17,6 @@
  */
 package com.example.graderbackend.entity;
 
-import com.example.graderbackend.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

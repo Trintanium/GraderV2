@@ -13,8 +13,6 @@
  */
 package com.example.graderbackend.exceptions;
 
-import com.example.graderbackend.exceptions.JWTExpiredException;
-import com.example.graderbackend.exceptions.JWTInvalidException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;

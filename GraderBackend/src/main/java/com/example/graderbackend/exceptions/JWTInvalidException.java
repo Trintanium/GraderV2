@@ -7,8 +7,6 @@
  */
 package com.example.graderbackend.exceptions;
 
-import com.example.graderbackend.exceptions.JWTException;
-
 public class JWTInvalidException
 extends JWTException {
     public JWTInvalidException(String message) {

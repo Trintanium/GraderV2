@@ -26,7 +26,6 @@ package com.example.graderbackend.security;
 
 import com.example.graderbackend.exceptions.JWTExpiredException;
 import com.example.graderbackend.exceptions.JWTInvalidException;
-import com.example.graderbackend.security.JWTUtils;
 import com.example.graderbackend.service.impl.UserDetailServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

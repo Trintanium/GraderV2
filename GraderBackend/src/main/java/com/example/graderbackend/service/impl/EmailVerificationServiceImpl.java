@@ -6,7 +6,6 @@ import com.example.graderbackend.entity.User;
 import com.example.graderbackend.repository.EmailVerificationRepository;
 import com.example.graderbackend.repository.UserRepository;
 import com.example.graderbackend.service.EmailVerificationService;
-import com.example.graderbackend.service.impl.ModelMapperServiceImpl;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import java.time.LocalDateTime;

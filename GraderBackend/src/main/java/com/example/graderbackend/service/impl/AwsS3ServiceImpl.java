@@ -1,5 +1,5 @@
 
-package org.example.graderbackend.service.impl;
+package com.example.graderbackend.service.impl;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
@@ -31,7 +31,7 @@ implements AwsS3Service {
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType("application/pdf");
         metadata.setContentLength(pdf.getSize());
-        try (InputStream is = pdf.getInputStream();){
+        try (InputStream is = pdf.getInputStream()){
             String string = this.uploadFileToS3(this.bucketNamePdf, fileName, is, metadata);
             return string;
         }

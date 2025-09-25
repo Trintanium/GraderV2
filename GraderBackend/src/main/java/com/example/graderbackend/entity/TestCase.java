@@ -20,8 +20,6 @@
  */
 package com.example.graderbackend.entity;
 
-import com.example.graderbackend.entity.Problem;
-import com.example.graderbackend.entity.Type;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

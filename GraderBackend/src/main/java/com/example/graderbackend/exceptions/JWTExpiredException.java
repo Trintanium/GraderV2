@@ -7,8 +7,6 @@
  */
 package com.example.graderbackend.exceptions;
 
-import com.example.graderbackend.exceptions.JWTException;
-
 public class JWTExpiredException
 extends JWTException {
     public JWTExpiredException(String message) {

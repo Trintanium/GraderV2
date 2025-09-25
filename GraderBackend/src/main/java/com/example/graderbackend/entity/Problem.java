@@ -22,10 +22,6 @@
  */
 package com.example.graderbackend.entity;
 
-import com.example.graderbackend.entity.Difficulty;
-import com.example.graderbackend.entity.ProblemTag;
-import com.example.graderbackend.entity.Submission;
-import com.example.graderbackend.entity.TestCase;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

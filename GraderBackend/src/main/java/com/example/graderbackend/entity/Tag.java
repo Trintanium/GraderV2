@@ -17,7 +17,6 @@
  */
 package com.example.graderbackend.entity;
 
-import com.example.graderbackend.entity.ProblemTag;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

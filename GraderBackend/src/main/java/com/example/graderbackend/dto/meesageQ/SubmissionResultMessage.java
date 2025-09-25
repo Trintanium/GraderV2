@@ -8,7 +8,6 @@
  */
 package com.example.graderbackend.dto.meesageQ;
 
-import com.example.graderbackend.dto.meesageQ.SubmissionResultMessage;
 import java.util.List;
 
 import lombok.*;

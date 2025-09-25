@@ -21,9 +21,6 @@
  */
 package com.example.graderbackend.entity;
 
-import com.example.graderbackend.entity.EmailVerification;
-import com.example.graderbackend.entity.Role;
-import com.example.graderbackend.entity.Submission;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
