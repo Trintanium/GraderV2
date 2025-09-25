@@ -1,19 +1,5 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  com.amazonaws.services.s3.AmazonS3
- *  com.amazonaws.services.s3.model.GeneratePresignedUrlRequest
- *  com.amazonaws.services.s3.model.ObjectMetadata
- *  com.amazonaws.services.s3.model.PutObjectRequest
- *  com.example.graderbackend.service.AwsS3Service
- *  com.example.graderbackend.service.impl.AwsS3ServiceImpl
- *  org.springframework.beans.factory.annotation.Autowired
- *  org.springframework.beans.factory.annotation.Value
- *  org.springframework.stereotype.Service
- *  org.springframework.web.multipart.MultipartFile
- */
-package com.example.graderbackend.service.impl;
+
+package org.example.graderbackend.service.impl;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
