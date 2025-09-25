@@ -78,9 +78,7 @@ export default function TaskDetails() {
     <div className="flex flex-col w-full h-screen bg-[#021526] p-6 gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-4xl font-extrabold text-indigo-900">
-          Task Details
-        </h1>
+        <h1 className="text-4xl font-extrabold text-white">Task Details</h1>
         <Link
           to="/tasks"
           className="px-4 py-2 bg-indigo-600 text-white font-medium rounded shadow hover:bg-indigo-700 transition"

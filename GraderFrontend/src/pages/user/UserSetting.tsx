@@ -67,11 +67,9 @@ export default function UserSettings() {
   };
 
   return (
-    <div className="flex flex-col items-center w-full min-h-screen p-6 bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="w-full max-w-3xl bg-white shadow-xl rounded-2xl p-8">
-        <h1 className="text-3xl font-bold mb-6 text-indigo-900">
-          Profile Settings
-        </h1>
+    <div className="flex flex-col items-center w-full min-h-screen p-6 bg-[#021526] text-white">
+      <div className="w-full max-w-3xl bg-[#112538] shadow-xl rounded-2xl p-8">
+        <h1 className="text-3xl font-bold mb-6 ">Profile Settings</h1>
 
         <div className="flex flex-col md:flex-row gap-8">
           {/* Profile Picture Section */}
@@ -97,22 +95,20 @@ export default function UserSettings() {
           {/* User Info Section */}
           <div className="flex flex-col gap-4 md:w-1/2">
             <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-700">
+              <label className="block text-sm font-semibold mb-1 ">
                 Username
               </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+                className="w-full px-3 py-2  border border-[#746F6F] rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-1 text-gray-700">
-                Email
-              </label>
-              <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+              <label className="block text-sm font-semibold mb-1 ">Email</label>
+              <div className="w-full px-3 py-2   border border-[#746F6F] rounded-lg ">
                 {user.email}
               </div>
             </div>
@@ -121,13 +117,13 @@ export default function UserSettings() {
             <div className="flex gap-3 mt-2">
               <button
                 onClick={() => mutation.mutate()}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
+                className="px-4 py-2 bg-[#03346E] text-white rounded-lg shadow hover:bg-green-700 transition border border-[#746F6F]"
               >
                 Save Changes
               </button>
               <Link
                 to="/"
-                className="px-4 py-2 bg-gray-400 text-white rounded-lg shadow hover:bg-gray-500 transition"
+                className="px-4 py-2 bg-[#112538] text-white rounded-lg shadow hover:bg-gray-500 transition border border-[#746F6F]"
               >
                 Cancel
               </Link>

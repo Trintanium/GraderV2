@@ -53,72 +53,87 @@ export default function TestcaseForm() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-4 bg-white rounded shadow">
-      <Link
-        to={`/tasks/${taskId}/testcases`}
-        className="self-start px-2 py-1 bg-blue-500 text-white rounded mb-4 inline-block"
-      >
-        Back
-      </Link>
-
-      <h2 className="text-xl font-bold mb-4">
-        {testcaseId ? "Edit Testcase" : "Create Testcase"}
-      </h2>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Input */}
-        <div>
-          <label className="block mb-1 font-medium">Input</label>
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="w-full border rounded px-2 py-1"
-            rows={5}
-            required
-          />
+    <div className="bg-[#021526] w-full min-h-screen text-white flex justify-center py-8">
+      <div className="w-full max-w-2xl p-4 rounded shadow">
+        {/* Breadcrumb */}
+        <div className="flex gap-2 py-4 text-sm text-[#CCCCCC]">
+          <Link to={`/tasks/${taskId}/testcases`} className="hover:underline">
+            All Testcases
+          </Link>
+          <span>&gt;</span>
+          <span>{testcaseId ? "Edit Testcase" : "Add Testcase"}</span>
         </div>
 
-        {/* Output */}
-        <div>
-          <label className="block mb-1 font-medium">Output</label>
-          <textarea
-            value={output}
-            onChange={(e) => setOutput(e.target.value)}
-            className="w-full border rounded px-2 py-1"
-            rows={5}
-            required
-          />
-        </div>
+        {/* Form */}
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5 bg-[#112538] p-6 rounded-2xl border border-[#746F6F]"
+        >
+          <h2 className="text-2xl font-bold mb-4">
+            {testcaseId ? "Edit Testcase" : "Create Testcase"}
+          </h2>
 
-        {/* Type */}
-        <div>
-          <label className="block mb-1 font-medium">Type</label>
-          <select
-            value={type}
-            onChange={(e) => setType(e.target.value as "PUBLIC" | "PRIVATE")}
-            className="w-full border rounded px-2 py-1"
-            required
-          >
-            <option value="PUBLIC">Public</option>
-            <option value="PRIVATE">Private</option>
-          </select>
-        </div>
+          {/* Input */}
+          <div>
+            <label className="block mb-2 font-medium">Input:</label>
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              className="w-full border border-[#746F6F] rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              rows={5}
+              required
+            />
+          </div>
 
-        {/* Submit */}
-        <div>
-          <button
-            type="submit"
-            className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600"
-            disabled={mutation.isPending}
-          >
-            {mutation.isPending
-              ? "Saving..."
-              : testcaseId
-              ? "Update Testcase"
-              : "Create Testcase"}
-          </button>
-        </div>
-      </form>
+          {/* Expected Output */}
+          <div>
+            <label className="block mb-2 font-medium">Expected Output:</label>
+            <textarea
+              value={output}
+              onChange={(e) => setOutput(e.target.value)}
+              className="w-full border border-[#746F6F] rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              rows={5}
+              required
+            />
+          </div>
+
+          {/* Type */}
+          <div>
+            <label className="block mb-2 font-medium">Type:</label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as "PUBLIC" | "PRIVATE")}
+              className="w-full border border-[#746F6F] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              required
+            >
+              <option value="PUBLIC">Public</option>
+              <option value="PRIVATE">Private</option>
+            </select>
+          </div>
+
+          {/* Submit & Cancel */}
+          <div className="flex flex-col sm:flex-row gap-4 mt-4">
+            <button
+              type="submit"
+              className="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition"
+              disabled={mutation.isPending}
+            >
+              {mutation.isPending
+                ? "Saving..."
+                : testcaseId
+                ? "Update Testcase"
+                : "Create Testcase"}
+            </button>
+
+            <Link
+              to={`/tasks/${taskId}/testcases`}
+              className="flex-1 bg-green-500 text-white text-center py-2 rounded-lg hover:bg-green-600 transition"
+            >
+              Cancel
+            </Link>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

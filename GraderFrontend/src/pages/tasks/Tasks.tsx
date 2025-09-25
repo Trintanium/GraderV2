@@ -14,14 +14,15 @@ import {
   faSortDown,
   faMagnifyingGlass,
 } from "@fortawesome/free-solid-svg-icons";
+
+type SortOrder = "default" | "asc" | "desc";
+
 export default function Tasks() {
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(
     null
   );
-  const [sortOrder, setSortOrder] = useState<"default" | "asc" | "desc">(
-    "default"
-  );
+  const [sortOrder, setSortOrder] = useState<SortOrder>("default");
   const [searchKeyword, setSearchKeyword] = useState("");
 
   const { user } = useUser();
@@ -32,6 +33,20 @@ export default function Tasks() {
     { name: "Intermediate", value: "MEDIUM" },
     { name: "Advanced", value: "HARD" },
   ];
+
+  const orders: SortOrder[] = ["default", "asc", "desc"];
+
+  const icons = {
+    default: faSort,
+    asc: faSortUp,
+    desc: faSortDown,
+  } as const;
+
+  const titles = {
+    default: "Default",
+    asc: "Ascending",
+    desc: "Descending",
+  } as const;
 
   // Fetch problems
   const { data: problems = [], isLoading: loadingProblems } = useQuery<
@@ -125,17 +140,18 @@ export default function Tasks() {
   };
 
   return (
-    <div className="flex  w-full min-h-screen p-8 bg-[#021526] gap-6">
+    <div className="flex w-full min-h-screen p-8 bg-[#021526] gap-6">
       {/* Sidebar Filters */}
       <div className="w-1/4 flex flex-col gap-6">
         <div className="flex justify-between w-full items-center mb-6">
-          <h1 className="text-3xl font-bold  text-white">Tasks</h1>
+          <h1 className="text-3xl font-bold text-white">Tasks</h1>
         </div>
 
         {/* Difficulty filter (radio) */}
         <div className="mb-6 bg-[#112538] text-white p-4 rounded-2xl border border-[#746F6F]">
-          <h2 className="font-semibold text-lg mb-2 ">Difficulty Level</h2>
-          <div className="flex flex-col gap-2 ">
+          <h2 className="font-semibold text-lg mb-2">Difficulty Level</h2>
+          <div className="flex flex-col gap-2">
+            {/* All Levels */}
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="radio"
@@ -145,38 +161,41 @@ export default function Tasks() {
                 onChange={() => setSelectedDifficulty(null)}
                 className="w-4 h-4 accent-indigo-600"
               />
-              <span>All Levels</span>
+              <span className="truncate">All Levels</span>
             </label>
+
+            {/* Difficulty Options */}
             {difficulty.map((diff) => (
               <label
                 key={diff.value}
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex flex-col gap-1 cursor-pointer"
               >
-                <input
-                  type="radio"
-                  name="difficulty"
-                  value={diff.value}
-                  checked={selectedDifficulty === diff.value}
-                  onChange={() => setSelectedDifficulty(diff.value)}
-                  className="w-4 h-4 accent-indigo-600"
-                />
-                <div className="flex gap-2">
-                  {diff.name}
-                  <div
-                    className={`w-max  text-xs font-semibold ${difficultyColor(
+                <div className="flex gap-2 items-center min-w-0">
+                  <input
+                    type="radio"
+                    name="difficulty"
+                    value={diff.value}
+                    checked={selectedDifficulty === diff.value}
+                    onChange={() => setSelectedDifficulty(diff.value)}
+                    className="w-4 h-4 accent-indigo-600"
+                  />
+                  <span className="truncate break-words">{diff.name}</span>
+                  <span
+                    className={`text-xs font-semibold ${difficultyColor(
                       diff.value
                     )}`}
                   >
                     {diff.value}
-                  </div>{" "}
+                  </span>
                 </div>
               </label>
             ))}
           </div>
         </div>
+
         {/* Tag filter (checkboxes) */}
         <div className="bg-[#112538] text-white p-4 rounded-2xl border border-[#746F6F]">
-          <h2 className="font-semibold text-lg mb-2 ">Filter by Tags</h2>
+          <h2 className="font-semibold text-lg mb-2">Filter by Tags</h2>
           <div className="flex flex-col gap-2">
             {tags.map((tag) => (
               <label
@@ -198,9 +217,10 @@ export default function Tasks() {
 
       {/* problem Util */}
       <div className="w-3/4 flex flex-col">
-        {/* Sorting */}
-        <div className="flex gap-2 mb-6 items-center text-white">
-          <div className="flex items-center w-full border rounded-2xl border-[#17548B] px-3 h-12">
+        {/* Sorting & Search */}
+        <div className="flex items-center gap-4 mb-6 text-white">
+          {/* Search */}
+          <div className="flex-1 flex items-center border rounded-2xl border-[#17548B] px-4 h-12">
             <FontAwesomeIcon
               icon={faMagnifyingGlass}
               className="text-gray-500 mr-2"
@@ -213,44 +233,32 @@ export default function Tasks() {
               onChange={(e) => setSearchKeyword(e.target.value)}
             />
           </div>
-          <button
-            onClick={() => setSortOrder("default")}
-            className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
-              sortOrder === "default"
-                ? "bg-[#17548B]"
-                : "bg-[#112538] hover:bg-[#7facd6]"
-            }`}
-            title="Default"
-          >
-            <FontAwesomeIcon icon={faSort} />
-          </button>
-          <button
-            onClick={() => setSortOrder("asc")}
-            className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
-              sortOrder === "asc"
-                ? "bg-[#17548B]"
-                : "bg-[#112538]  hover:bg-[#7facd6]"
-            }`}
-            title="Ascending"
-          >
-            <FontAwesomeIcon icon={faSortUp} />
-          </button>
-          <button
-            onClick={() => setSortOrder("desc")}
-            className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
-              sortOrder === "desc"
-                ? "bg-[#17548B]"
-                : "bg-[#112538] hover:bg-[#7facd6]"
-            }`}
-            title="Descending"
-          >
-            <FontAwesomeIcon icon={faSortDown} />
-          </button>
 
-          {user && (
+          {/* Sort Buttons */}
+          <div className="flex rounded-lg overflow-hidden border border-[#746F6F]">
+            {orders.map((order, index) => (
+              <button
+                key={order}
+                onClick={() => setSortOrder(order)}
+                className={`px-3 py-2 text-sm font-medium transition flex items-center justify-center
+          ${
+            sortOrder === order
+              ? "bg-[#17548B]"
+              : "bg-[#112538] hover:bg-[#7facd6]"
+          }
+          ${index < orders.length - 1 ? "border-r border-[#746F6F]" : ""}`}
+                title={titles[order]}
+              >
+                <FontAwesomeIcon icon={icons[order]} />
+              </button>
+            ))}
+          </div>
+
+          {/* Add Task */}
+          {user?.role === "ADMIN" && (
             <Link
               to="/tasks/new"
-              className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
+              className="px-4 py-2 bg-[#112538] text-white rounded-lg shadow hover:bg-[#0d1d2c] transition whitespace-nowrap border border-[#746F6F]"
             >
               + Add Task
             </Link>
@@ -272,23 +280,23 @@ export default function Tasks() {
                   >
                     {problem.title}
                   </Link>
-                  {user && (
-                    <div className="flex  gap-4">
+                  {user?.role === "ADMIN" && (
+                    <div className="flex gap-4">
                       <Link
                         to={`/tasks/${problem.id}/edit`}
-                        className="  text-white text-center text-xl"
+                        className="text-white text-center text-xl"
                       >
                         <FontAwesomeIcon icon={faEdit} />
                       </Link>
                       <button
                         onClick={() => deleteProblemMutation.mutate(problem.id)}
-                        className="   text-red-400 text-center text-xl"
+                        className="text-red-400 text-center text-xl"
                       >
                         <FontAwesomeIcon icon={faTrash} />
                       </button>
                       <Link
                         to={`/tasks/${problem.id}/testcases`}
-                        className="  text-white text-center text-xl"
+                        className="text-white text-center text-xl"
                       >
                         <FontAwesomeIcon icon={faBook} />
                       </Link>
@@ -303,6 +311,7 @@ export default function Tasks() {
                 >
                   {problem.difficulty}
                 </div>
+
                 <div className="flex flex-wrap gap-2">
                   {problem.tags?.length ? (
                     problem.tags.map((t) => (
