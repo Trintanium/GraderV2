@@ -20,7 +20,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 5s
+      start_period: 10s
 
   # RabbitMQ
   rabbitmq:
@@ -63,12 +63,9 @@ services:
       dockerfile: Dockerfile
     container_name: grader-backend
     depends_on:
-      grader-database:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - grader-database
+      - rabbitmq
+      - redis
     environment:
       SPRING_DATASOURCE_URL: ${DB_URL}
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
@@ -93,7 +90,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 20s
+      start_period: 90s # Give Spring Boot enough time to start
 
   # Worker
   grader-worker:
@@ -102,14 +99,10 @@ services:
       dockerfile: docker/Dockerfile.worker
     container_name: grader-worker
     depends_on:
-      grader-database:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      grader-backend:
-        condition: service_healthy
+      - grader-database
+      - rabbitmq
+      - redis
+      - grader-backend
     environment:
       SPRING_DATASOURCE_URL: ${DB_URL}
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
@@ -126,6 +119,7 @@ services:
       AWS_SECRET_KEY: ${AWS_SECRET_KEY}
     env_file:
       - .env
+    command: ["sh", "-c", "sleep 10 && java -jar /app/worker.jar"] # optional startup delay
 
   # Runner
   grader-runner:
@@ -147,12 +141,12 @@ services:
       dockerfile: Dockerfile
     container_name: grader-frontend
     ports:
-      - "80:80" # <-- frontend accessible on host port 80
+      - "80:80"
     depends_on:
-      grader-backend:
-        condition: service_healthy
+      - grader-backend
     env_file:
       - .env
+    command: ["sh", "-c", "sleep 10 && nginx -g 'daemon off;'"] # optional delay
 
 volumes:
   pgdata:
