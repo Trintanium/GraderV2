@@ -3,7 +3,7 @@ services:
     name: grader-database
     env: docker
     plan: free
-    dockerImage: postgres:15
+    dockerfilePath: "" # use image instead
     startCommand: ""
     envVars:
       - key: POSTGRES_DB
@@ -12,32 +12,46 @@ services:
         fromSecret: DB_USERNAME
       - key: POSTGRES_PASSWORD
         fromSecret: DB_PASSWORD
+      - key: PGDATA
+        value: "/var/lib/postgresql/data/pgdata"
+    dockerImage: postgres:15
+    volumes:
+      - name: postgres-data
+        mountPath: /var/lib/postgresql/data
 
   - type: web
     name: rabbitmq
     env: docker
     plan: free
-    dockerImage: rabbitmq:3.13-management
+    dockerfilePath: "" # use image instead
     startCommand: ""
     envVars:
       - key: RABBITMQ_DEFAULT_USER
         fromSecret: RABBIT_USERNAME
       - key: RABBITMQ_DEFAULT_PASS
         fromSecret: RABBIT_PASSWORD
+    dockerImage: rabbitmq:3.13-management
+    volumes:
+      - name: rabbitmq-data
+        mountPath: /var/lib/rabbitmq
 
   - type: web
     name: redis
     env: docker
     plan: free
+    startCommand: "redis-server --appendonly yes"
     dockerImage: redis:7
-    startCommand: ""
+    volumes:
+      - name: redis-data
+        mountPath: /data
 
   - type: web
     name: grader-backend
     env: docker
     plan: free
-    buildCommand: "cd GraderBackend && ./gradlew build"
-    startCommand: "java -jar GraderBackend/build/libs/backend.jar"
+    dockerfilePath: ./GraderBackend/Dockerfile
+    buildCommand: ""
+    startCommand: "sh -c 'sleep 30 && java -jar /app/backend.jar'"
     envVars:
       - key: SPRING_DATASOURCE_URL
         value: "jdbc:postgresql://grader-database:5432/${DB_NAME}"
@@ -47,6 +61,8 @@ services:
         fromSecret: DB_PASSWORD
       - key: SPRING_REDIS_HOST
         value: "redis"
+      - key: SPRING_REDIS_PORT
+        value: "6379"
       - key: SPRING_RABBITMQ_HOST
         value: "rabbitmq"
       - key: SPRING_RABBITMQ_PORT
@@ -65,13 +81,18 @@ services:
         fromSecret: AWS_ACCESS_KEY
       - key: AWS_SECRET_KEY
         fromSecret: AWS_SECRET_KEY
+      - key: SERVER_PORT
+        value: "8080"
+      - key: SPRING_PROFILES_ACTIVE
+        value: "production"
 
   - type: web
     name: grader-worker
     env: docker
     plan: free
-    buildCommand: "cd GraderWorkerApplication && ./gradlew build"
-    startCommand: "sh -c 'sleep 10 && java -jar GraderWorkerApplication/build/libs/worker.jar'"
+    dockerfilePath: ./GraderWorkerApplication/docker/Dockerfile.worker
+    buildCommand: ""
+    startCommand: "sh -c 'sleep 45 && java -jar /app/worker.jar'"
     envVars:
       - key: SPRING_DATASOURCE_URL
         value: "jdbc:postgresql://grader-database:5432/${DB_NAME}"
@@ -81,6 +102,8 @@ services:
         fromSecret: DB_PASSWORD
       - key: SPRING_REDIS_HOST
         value: "redis"
+      - key: SPRING_REDIS_PORT
+        value: "6379"
       - key: SPRING_RABBITMQ_HOST
         value: "rabbitmq"
       - key: SPRING_RABBITMQ_PORT
@@ -99,12 +122,15 @@ services:
         fromSecret: AWS_ACCESS_KEY
       - key: AWS_SECRET_KEY
         fromSecret: AWS_SECRET_KEY
+      - key: SPRING_PROFILES_ACTIVE
+        value: "production"
 
   - type: web
     name: grader-runner
     env: docker
     plan: free
-    buildCommand: "cd GraderWorkerApplication && ./gradlew build"
+    dockerfilePath: ./GraderWorkerApplication/docker/Dockerfile.runner
+    buildCommand: ""
     startCommand: "sh -c 'tail -f /dev/null'"
     volumes:
       - name: grader-runner-workspace
@@ -114,11 +140,19 @@ services:
     name: grader-frontend
     env: docker
     plan: free
-    buildCommand: "cd GraderFrontend && npm install && npm run build"
-    startCommand: 'sh -c ''sleep 10 && nginx -g "daemon off;"'''
+    dockerfilePath: ./GraderFrontend/Dockerfile
+    buildCommand: ""
+    startCommand: 'sh -c ''sleep 60 && nginx -g "daemon off;"'''
     envVars:
       - key: BACKEND_URL
-        value: "http://grader-backend:8080"
+        # Replace with your actual backend service URL after deployment
+        # Format: https://grader-backend-XXXXX.onrender.com
+        value: "https://grader-backend.onrender.com"
+      - key: NGINX_PORT
+        value: "80"
 
 volumes:
+  - name: postgres-data
+  - name: rabbitmq-data
+  - name: redis-data
   - name: grader-runner-workspace
