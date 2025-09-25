@@ -4,8 +4,6 @@ services:
     env: docker
     plan: free
     dockerfilePath: ./GraderDatabase/Dockerfile
-    buildCommand: ""
-    startCommand: "docker-entrypoint.sh postgres"
     envVars:
       - key: POSTGRES_DB
         fromSecret: DB_NAME
@@ -19,8 +17,6 @@ services:
     env: docker
     plan: free
     dockerfilePath: ./GraderRabbitMQ/Dockerfile
-    buildCommand: ""
-    startCommand: "rabbitmq-server"
     envVars:
       - key: RABBITMQ_DEFAULT_USER
         fromSecret: RABBIT_USERNAME
@@ -32,19 +28,15 @@ services:
     env: docker
     plan: free
     dockerfilePath: ./GraderRedis/Dockerfile
-    buildCommand: ""
-    startCommand: "redis-server"
 
   - type: web
     name: GraderBackend
     env: docker
     plan: free
     dockerfilePath: ./GraderBackend/Dockerfile
-    buildCommand: ""
-    startCommand: "sh -c 'sleep 30 && java -jar /app/backend.jar'"
     envVars:
       - key: SPRING_DATASOURCE_URL
-        value: "jdbc:postgresql://GraderDatabase:5432/${DB_NAME}"
+        value: "jdbc:postgresql://GraderDatabase:5432/grader"
       - key: SPRING_DATASOURCE_USERNAME
         fromSecret: DB_USERNAME
       - key: SPRING_DATASOURCE_PASSWORD
@@ -68,9 +60,9 @@ services:
       - key: MAIL_PASSWORD
         fromSecret: MAIL_PASSWORD
       - key: AWS_ACCESS_KEY
-        fromSecret: AWS_ACCESS_KEY
+        fromSecret: AWS_ACCESS
       - key: AWS_SECRET_KEY
-        fromSecret: AWS_SECRET_KEY
+        fromSecret: AWS_SECRET
       - key: PORT
         value: "8080"
 
@@ -79,11 +71,9 @@ services:
     env: docker
     plan: free
     dockerfilePath: ./GraderWorkerApplication/docker/Dockerfile.worker
-    buildCommand: ""
-    startCommand: "sh -c 'sleep 45 && java -jar /app/worker.jar'"
     envVars:
       - key: SPRING_DATASOURCE_URL
-        value: "jdbc:postgresql://GraderDatabase:5432/${DB_NAME}"
+        value: "jdbc:postgresql://GraderDatabase:5432/grader"
       - key: SPRING_DATASOURCE_USERNAME
         fromSecret: DB_USERNAME
       - key: SPRING_DATASOURCE_PASSWORD
@@ -107,27 +97,25 @@ services:
       - key: MAIL_PASSWORD
         fromSecret: MAIL_PASSWORD
       - key: AWS_ACCESS_KEY
-        fromSecret: AWS_ACCESS_KEY
+        fromSecret: AWS_ACCESS
       - key: AWS_SECRET_KEY
-        fromSecret: AWS_SECRET_KEY
+        fromSecret: AWS_SECRET
 
   - type: web
     name: GraderRunner
     env: docker
     plan: free
     dockerfilePath: ./GraderWorkerApplication/docker/Dockerfile.runner
-    buildCommand: ""
-    startCommand: "sh -c 'tail -f /dev/null'"
 
   - type: web
     name: GraderFrontend
     env: docker
     plan: free
     dockerfilePath: ./GraderFrontend/Dockerfile
-    buildCommand: ""
-    startCommand: 'sh -c ''sleep 60 && nginx -g "daemon off;"'''
     envVars:
       - key: BACKEND_URL
         value: "https://GraderBackend.onrender.com"
       - key: PORT
         value: "80"
+      - key: VITE_BASE_URL
+        value: "/api"
