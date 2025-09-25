@@ -8,7 +8,7 @@ import Tasks from "@/pages/tasks/Tasks";
 import TaskForm from "@/pages/tasks/TaskForm";
 import TaskDetails from "@/pages/tasks/TaskDetails";
 import Tags from "@/pages/tags/Tags";
-import TagForm from "@/pages/tags/TagForm";
+
 import TestCase from "@/pages/testCases/TestCase";
 import TestcaseForm from "@/pages/testCases/TestCaseForm";
 import About from "@/pages/About";
@@ -41,16 +41,7 @@ export const router = createBrowserRouter([
         ],
       },
 
-      {
-        path: PATHS.TAGS.ROOT,
-        children: [
-          { index: true, element: <Tags /> },
-          { path: "new", element: <TagForm /> },
-          { path: ":tagId", element: <TagForm /> },
-          { path: ":tagId/edit", element: <TagForm /> },
-        ],
-      },
-
+      { path: PATHS.TAGS.ROOT, element: <Tags /> },
       { path: PATHS.AUTH, element: <AuthPage /> },
       { path: PATHS.EMAIL_VERIFY, element: <EmailVerify /> },
 

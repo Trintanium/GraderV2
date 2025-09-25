@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -11,16 +11,18 @@ import {
 import { problemDto, tagDto, problemTagDto } from "@/types/dto";
 
 export default function TaskForm() {
-  const { id } = useParams<{ id: string }>();
+  const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const isEdit = !!id && !isNaN(Number(id));
+  const isEdit = !!taskId && !isNaN(Number(taskId));
 
   const [title, setTitle] = useState("");
   const [difficulty, setDifficulty] = useState("");
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [file, setFile] = useState<File | null>(null);
+  const [pdfPreview, setPdfPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Fetch all tags
   const { data: tags } = useQuery<tagDto[]>({
@@ -30,22 +32,24 @@ export default function TaskForm() {
 
   // Fetch problem data if editing
   const { data: problem } = useQuery<problemDto>({
-    queryKey: ["problem", id],
-    queryFn: () => fetchData(`/problem/${id}`),
+    queryKey: ["problem", taskId],
+    queryFn: () => fetchData(`/problem/${taskId}`),
     enabled: isEdit,
   });
 
   // Fetch problem tags if editing
   const { data: problemTags } = useQuery<tagDto[]>({
-    queryKey: ["problemTags", id],
-    queryFn: () => fetchData(`/problem/${id}/tags`),
+    queryKey: ["problemTags", taskId],
+    queryFn: () => fetchData(`/problem/${taskId}/tags`),
     enabled: isEdit,
   });
 
+  // Initialize form values when editing
   useEffect(() => {
     if (problem) {
       setTitle(problem.title);
       setDifficulty(problem.difficulty);
+      if (problem.pdfUrl) setPdfPreview(problem.pdfUrl);
     }
   }, [problem]);
 
@@ -56,9 +60,19 @@ export default function TaskForm() {
   }, [problemTags]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+    const selectedFile = e.target.files?.[0] || null;
+    setFile(selectedFile);
+    if (selectedFile) {
+      setPdfPreview(URL.createObjectURL(selectedFile));
+    } else {
+      setPdfPreview(null);
     }
+  };
+
+  const handleRemovePdf = () => {
+    setFile(null);
+    setPdfPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleTagToggle = (tagId: number) => {
@@ -77,7 +91,7 @@ export default function TaskForm() {
       if (file) form.append("pdf", file);
 
       const savedProblem = isEdit
-        ? await updateFormData<problemDto>(`/problem/${id}`, form)
+        ? await updateFormData<problemDto>(`/problem/${taskId}`, form)
         : await createFormData<problemDto>("/problem", form);
 
       const problemId = savedProblem.id;
@@ -87,7 +101,7 @@ export default function TaskForm() {
       );
       const oldTagIds = oldProblemTags.map((t) => t.tagId);
 
-      // Tags to remove from this problem
+      // Tags to remove
       const tagsToDelete = oldProblemTags.filter(
         (t) => !selectedTags.includes(t.tagId)
       );
@@ -96,7 +110,7 @@ export default function TaskForm() {
         tagsToDelete.map((t) => deleteData(`/problem-tag/${t.id}`))
       );
 
-      // Tags to add to this problem
+      // Tags to add
       const tagsToAdd = selectedTags.filter((id) => !oldTagIds.includes(id));
 
       await Promise.all(
@@ -116,106 +130,156 @@ export default function TaskForm() {
       navigate("/tasks");
     },
   });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     saveMutation.mutate();
   };
 
   return (
-    <div className="max-w-md mx-auto p-4 bg-white rounded shadow">
-      <Link
-        to="/tasks"
-        className="self-start px-2 py-1 bg-blue-500 text-white rounded"
-      >
-        Back
-      </Link>
-      <h2 className="text-xl font-bold mb-4">
-        {isEdit ? "Edit Problem" : "Create Problem"}
-      </h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Title */}
-        <div>
-          <label className="block mb-1 font-medium">Title</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full border rounded px-2 py-1"
-            required
-          />
+    <div className="bg-[#021526] w-full h-screen text-white">
+      <div className="w-1/2 mx-auto p-4 rounded shadow">
+        <div className="flex gap-2 py-4">
+          <Link to="/tasks">All tasks</Link>
+          &gt; {isEdit ? "Edit Task" : "Add Task"}
         </div>
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 bg-[#112538] p-4 rounded-2xl border border-[#746F6F]"
+        >
+          <h2 className="text-xl font-bold mb-4">
+            {isEdit ? "Edit Task" : "Create Task"}
+          </h2>
 
-        {/* Difficulty */}
-        <div>
-          <label className="block mb-1 font-medium">Difficulty</label>
-          <select
-            value={difficulty}
-            onChange={(e) => setDifficulty(e.target.value)}
-            className="w-full border rounded px-2 py-1"
-            required
-          >
-            <option value="">Select difficulty</option>
-            <option value="EASY">Easy</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HARD">Hard</option>
-          </select>
-        </div>
-
-        {/* Tags */}
-        <div>
-          <label className="block mb-1 font-medium">Tags</label>
-          <div className="flex flex-wrap gap-2">
-            {tags?.map((tag) => (
-              <button
-                type="button"
-                key={tag.id}
-                onClick={() => handleTagToggle(tag.id)}
-                className={`px-3 py-1 rounded border ${
-                  selectedTags.includes(tag.id)
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "bg-white text-gray-700 border-gray-300"
-                }`}
-              >
-                {tag.name}
-              </button>
-            ))}
+          {/* Title */}
+          <div>
+            <label className="block mb-1 font-medium">Task Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full border rounded px-2 py-1 border-[#746F6F]"
+              required
+            />
           </div>
-        </div>
 
-        {/* PDF */}
-        <div>
-          <label className="block mb-1 font-medium">PDF</label>
-          <input type="file" accept=".pdf" onChange={handleFileChange} />
-          {problem?.pdfUrl && !file && (
-            <p className="mt-1 text-sm text-gray-500">
-              Current PDF:{" "}
-              <a
-                href={problem.pdfUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-500 underline"
+          {/* Difficulty */}
+          <div>
+            <label className="block mb-1 font-medium">Difficulty</label>
+            <select
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value)}
+              className="w-full border rounded px-2 py-1 border-[#746F6F]"
+              required
+            >
+              <option value="">Select difficulty</option>
+              <option value="EASY">Easy</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HARD">Hard</option>
+            </select>
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label className="block mb-1 font-medium">Tags</label>
+            <div className="flex flex-wrap gap-2">
+              {tags?.map((tag) => (
+                <button
+                  type="button"
+                  key={tag.id}
+                  onClick={() => handleTagToggle(tag.id)}
+                  className={`px-3 py-1 rounded border transition-colors duration-200 ${
+                    selectedTags.includes(tag.id)
+                      ? "bg-green-500 text-white border-green-500 hover:bg-green-600"
+                      : "bg-[#1e3a5f] text-white border-[#2a4d77] hover:bg-[#2a4d77]"
+                  }`}
+                >
+                  {tag.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* PDF Upload */}
+          <div className="block mb-1 font-medium">Task Statement (PDF)</div>
+          <div className="flex items-center justify-center w-full">
+            {pdfPreview ? (
+              <div className="relative w-full h-64 border rounded-lg overflow-hidden">
+                <iframe
+                  src={pdfPreview}
+                  title="PDF Preview"
+                  width="100%"
+                  height="100%"
+                ></iframe>
+                <button
+                  type="button"
+                  onClick={handleRemovePdf}
+                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <label
+                htmlFor="dropzone-pdf"
+                className="flex flex-col items-center justify-center w-full h-64 border-2 border-[#746F6F] border-dashed rounded-lg cursor-pointer bg-[#112538] hover:bg-[#0f2132]"
               >
-                View
-              </a>
-            </p>
-          )}
-        </div>
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <svg
+                    className="w-8 h-8 mb-4 text-gray-500"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 20 16"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+                    />
+                  </svg>
+                  <p className="mb-2 text-sm text-gray-500">
+                    <span className="font-semibold">Click to upload</span> or
+                    drag and drop
+                  </p>
+                  <p className="text-xs text-gray-500">PDF only</p>
+                </div>
+                <input
+                  id="dropzone-pdf"
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  ref={fileInputRef}
+                />
+              </label>
+            )}
+          </div>
 
-        {/* Submit */}
-        <div>
-          <button
-            type="submit"
-            className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600"
-            disabled={saveMutation.isPending}
-          >
-            {saveMutation.isPending
-              ? "Saving..."
-              : isEdit
-              ? "Update Problem"
-              : "Create Problem"}
-          </button>
-        </div>
-      </form>
+          {/* Submit Buttons */}
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              className="w-1/2 bg-green-500 text-white py-2 rounded hover:bg-green-600"
+              disabled={saveMutation.isPending}
+            >
+              {saveMutation.isPending
+                ? "Saving..."
+                : isEdit
+                ? "Update Problem"
+                : "Create Problem"}
+            </button>
+            <Link
+              to="/tasks"
+              className="w-1/2 bg-red-500 text-white py-2 rounded hover:bg-green-600 text-center"
+            >
+              Cancel
+            </Link>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

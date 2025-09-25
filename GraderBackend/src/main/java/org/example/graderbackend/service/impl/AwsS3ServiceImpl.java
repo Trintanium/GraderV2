@@ -58,10 +58,10 @@ implements AwsS3Service {
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType("image/png");
         metadata.setContentLength(png.getSize());
-        try (InputStream is = png.getInputStream();){
-            String string = this.uploadFileToS3(this.bucketNamePng, fileName, is, metadata);
-            return string;
+        try (InputStream is = png.getInputStream()) {
+            this.uploadFileToS3(this.bucketNamePng, fileName, is, metadata);
         }
+        return fileName;
     }
 
     public String uploadFileToS3(String bucketName, String fileName, InputStream inputStream, ObjectMetadata metadata) {

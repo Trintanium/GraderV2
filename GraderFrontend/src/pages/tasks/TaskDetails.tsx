@@ -75,7 +75,7 @@ export default function TaskDetails() {
     : 0;
 
   return (
-    <div className="flex flex-col w-full h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 gap-6">
+    <div className="flex flex-col w-full h-screen bg-[#021526] p-6 gap-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-4xl font-extrabold text-indigo-900">
@@ -90,14 +90,12 @@ export default function TaskDetails() {
       </div>
 
       {/* Main container */}
-      <div className="flex flex-1 gap-6 overflow-hidden">
+      <div className="flex flex-1 gap-6 overflow-hidden text-white">
         {/* Sidebar */}
-        <div className="w-1/4 flex flex-col gap-4 p-4 bg-white rounded-xl shadow-md border border-indigo-200">
-          <div className="text-sm text-gray-500">Task ID: {taskId}</div>
-          <div className="text-xl font-semibold text-indigo-800">
-            {problem?.title}
-          </div>
-          <div className="border-t border-indigo-200 my-2" />
+        <div className="w-1/4 flex flex-col gap-4 p-4 bg-[#112538] rounded-xl shadow-md border border-[#746F6F]">
+          <div className="text-sm ">Task ID: {taskId}</div>
+          <div className="text-xl font-semibold ">{problem?.title}</div>
+          <div className="border-t border-[#746F6F] my-2" />
 
           {/* Tabs */}
           <div className="flex flex-col gap-2">
@@ -107,7 +105,7 @@ export default function TaskDetails() {
                 className={`text-left px-3 py-2 rounded-md font-medium transition ${
                   tab === t.key
                     ? "bg-indigo-600 text-white shadow"
-                    : "hover:bg-indigo-100 text-indigo-800"
+                    : "hover:bg-indigo-100 "
                 }`}
                 onClick={() => setTab(t.key)}
               >
@@ -116,20 +114,18 @@ export default function TaskDetails() {
             ))}
           </div>
 
-          <div className="border-t border-indigo-200 my-2" />
-          <div className="text-sm text-gray-700 font-medium">
-            Highest Score: {maxScore}
-          </div>
+          <div className="border-t border-[#746F6F] my-2" />
+          <div className="text-sm  font-medium">Highest Score: {maxScore}</div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 flex flex-col bg-white rounded-xl shadow-md p-4 overflow-hidden">
+        <div className="flex-1 flex flex-col bg-[#112538] rounded-xl shadow-md p-4 overflow-hidden border-[#746F6F] border">
           {/* Statement PDF */}
           {tab === "statement" && problem?.pdfUrl && (
             <embed
               src={problem.pdfUrl}
               type="application/pdf"
-              className="flex-1 w-full rounded border border-indigo-200"
+              className="flex-1 w-full rounded border border-[#746F6F]"
             />
           )}
 

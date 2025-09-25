@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { updateFormData } from "@/libs/fetchUtils";
 import { useUser } from "@/contexts/UserContext";
 import { UserDto } from "@/types/dto";
@@ -21,7 +21,7 @@ export default function UserSettings() {
 
   const navigate = useNavigate();
 
-  // Initialize state
+  // Initialize user data
   useEffect(() => {
     if (user) {
       setUsername(user.username || "");
@@ -29,33 +29,34 @@ export default function UserSettings() {
     }
   }, [user]);
 
-  // Mutation to update user
+  // Mutation for updating user profile
   const mutation = useMutation<UserDto, Error>({
     mutationFn: async () => {
       const formData = new FormData();
       if (username.trim()) formData.append("username", username);
-      if (file) formData.append("png", file); // optional
+      if (file) formData.append("png", file);
 
-      return updateFormData("/user/update", formData); // use FormData PUT
+      return updateFormData("/user/update", formData);
     },
-    onSuccess: (updatedUser: UserDto) => {
+    onSuccess: (updatedUser) => {
       setUser(updatedUser);
       setPreview(updatedUser.profilePicture || null);
 
-      setModalMessage("Updated successfully!");
+      setModalMessage("Profile updated successfully!");
       setModalStatus("success");
       setShowModal(true);
 
-      setTimeout(() => navigate("/"), 2000); // redirect to home
+      setTimeout(() => navigate("/"), 2000);
     },
     onError: () => {
-      setModalMessage("Update failed!");
+      setModalMessage("Update failed. Please try again!");
       setModalStatus("error");
       setShowModal(true);
     },
   });
 
-  if (!user) return <div>Loading user...</div>;
+  if (!user)
+    return <div className="text-center mt-10 text-lg">Loading user...</div>;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -66,49 +67,87 @@ export default function UserSettings() {
   };
 
   return (
-    <div className="flex flex-col items-center w-4/5 min-h-screen p-8 bg-amber-100 gap-6">
-      <h1 className="text-3xl font-bold mb-4">User Settings</h1>
+    <div className="flex flex-col items-center w-full min-h-screen p-6 bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="w-full max-w-3xl bg-white shadow-xl rounded-2xl p-8">
+        <h1 className="text-3xl font-bold mb-6 text-indigo-900">
+          Profile Settings
+        </h1>
 
-      <div className="flex flex-col gap-4 w-full max-w-md">
-        {/* Profile Picture */}
-        <div className="flex flex-col items-center gap-2">
-          <img
-            src={preview || Anonymous}
-            alt="Profile"
-            className="w-32 h-32 rounded-full object-cover border border-gray-400"
-          />
-          <input type="file" accept="image/png" onChange={handleFileChange} />
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Profile Picture Section */}
+          <div className="flex flex-col items-center gap-3 md:w-1/2">
+            <div className="relative w-32 h-32">
+              <img
+                src={preview || Anonymous}
+                alt="Profile"
+                className="w-32 h-32 rounded-full object-cover border-4 border-indigo-300 shadow-md"
+              />
+            </div>
+            <label className="px-3 py-1 bg-indigo-600 text-white text-sm rounded-lg shadow hover:bg-indigo-700 cursor-pointer transition">
+              Change Photo
+              <input
+                type="file"
+                accept="image/png"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </label>
+          </div>
+
+          {/* User Info Section */}
+          <div className="flex flex-col gap-4 md:w-1/2">
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">
+                Username
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-1 text-gray-700">
+                Email
+              </label>
+              <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
+                {user.email}
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-3 mt-2">
+              <button
+                onClick={() => mutation.mutate()}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
+              >
+                Save Changes
+              </button>
+              <Link
+                to="/"
+                className="px-4 py-2 bg-gray-400 text-white rounded-lg shadow hover:bg-gray-500 transition"
+              >
+                Cancel
+              </Link>
+            </div>
+
+            {mutation.isPending && (
+              <div className="text-sm text-indigo-600 mt-2">Updating...</div>
+            )}
+          </div>
         </div>
-        {/* Username */}
-        <div className="flex flex-col gap-1">
-          <label className="font-semibold">Username</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="px-3 py-2 border border-gray-400 rounded"
+
+        {/* Modal */}
+        {showModal && (
+          <Modal
+            message={modalMessage}
+            status={modalStatus}
+            onClose={() => setShowModal(false)}
           />
-        </div>
-
-        {/* Save */}
-        <button
-          onClick={() => mutation.mutate()}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
-        >
-          Save Changes
-        </button>
-
-        {mutation.isPending && <div>Updating...</div>}
+        )}
       </div>
-
-      {/* Modal */}
-      {showModal && (
-        <Modal
-          message={modalMessage}
-          status={modalStatus}
-          onClose={() => setShowModal(false)}
-        />
-      )}
     </div>
   );
 }

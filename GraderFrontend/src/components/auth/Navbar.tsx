@@ -54,7 +54,7 @@ function Navbar() {
   ];
 
   return (
-    <nav className="relative top-0 left-0 w-screen z-50 bg-[#120936] shadow-lg flex justify-between items-center h-16 px-6 sm:px-12 text-white">
+    <nav className="relative top-0 left-0 w-screen z-50 bg-[#112538] shadow-lg flex justify-between items-center h-16 px-6 sm:px-12 text-white">
       {/* Logo */}
       <div className="text-2xl font-bold tracking-wider hover:text-purple-300 transition">
         <Link to="/">Logo</Link>
@@ -66,16 +66,16 @@ function Navbar() {
           <Link
             key={link.path}
             to={link.path}
-            className={`px-3 py-2 rounded-md font-medium transition ${
+            className={`px-8 py-2 rounded-md font-medium ease-in-out trasition-0.5 transition ${
               currentPath === link.path
-                ? "bg-[#b588d5] text-white"
-                : "hover:bg-[#3b1f5c] hover:text-white"
+                ? "bg-gradient-to-l from-[#03346E] to-[#17548B] text-white"
+                : "hover:bg-[#17548B] hover:text-white"
             }`}
           >
             {link.name}
           </Link>
         ))}
-      
+
         {user ? (
           <div ref={dropdownRef} className="relative">
             <img

@@ -11,7 +11,7 @@ export default function Submissions({ submission }: SubmissionsProps) {
       {submission.length === 0 ? (
         <div>No submissions yet</div>
       ) : (
-        <div className="flex-1 overflow-auto border rounded p-2">
+        <div className="flex-1 overflow-auto border border-[#746F6F] rounded p-2">
           <ul className="list-disc space-y-3">
             {submission.map((s) => (
               <li key={s.id}>
@@ -38,7 +38,7 @@ export default function Submissions({ submission }: SubmissionsProps) {
                     ? new Date(s.submittedAt).toLocaleString()
                     : "N/A"}
                 </div>
-                <hr className="my-2" />
+                <hr className="my-2 border-[#746F6F] border-t" />
               </li>
             ))}
           </ul>

@@ -17,9 +17,9 @@ export const PATHS = {
 
   TAGS: {
     ROOT: "tags",
-    NEW: "tags/new",
-    DETAILS: "tags/:tagId",
-    EDIT: "tags/:tagId/edit",
+    // NEW: "tags/new",
+    // DETAILS: "tags/:tagId",
+    // EDIT: "tags/:tagId/edit",
   },
 
   AUTH: "auth",
