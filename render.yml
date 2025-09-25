@@ -1,0 +1,122 @@
+services:
+  - type: web
+    name: grader-database
+    env: docker
+    plan: free
+    dockerComposePath: ./docker-compose.yml
+    autoDeploy: true
+    envVars:
+      - key: DB_NAME
+        fromSecret: DB_NAME
+      - key: DB_USERNAME
+        fromSecret: DB_USERNAME
+      - key: DB_PASSWORD
+        fromSecret: DB_PASSWORD
+    startCommand: "" 
+
+  - type: web
+    name: rabbitmq
+    env: docker
+    plan: free
+    dockerComposePath: ./docker-compose.yml
+    autoDeploy: true
+    envVars:
+      - key: RABBIT_USERNAME
+        fromSecret: RABBIT_USERNAME
+      - key: RABBIT_PASSWORD
+        fromSecret: RABBIT_PASSWORD
+    startCommand: "" 
+
+  - type: web
+    name: redis
+    env: docker
+    plan: free
+    dockerComposePath: ./docker-compose.yml
+    autoDeploy: true
+    startCommand: "" 
+
+  - type: web
+    name: grader-backend
+    env: docker
+    plan: free
+    dockerComposePath: ./docker-compose.yml
+    autoDeploy: true
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromSecret: DB_URL
+      - key: SPRING_DATASOURCE_USERNAME
+        fromSecret: DB_USERNAME
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromSecret: DB_PASSWORD
+      - key: SPRING_REDIS_HOST
+        fromSecret: REDIS_HOST
+      - key: SPRING_RABBITMQ_HOST
+        fromSecret: RABBIT_HOST
+      - key: SPRING_RABBITMQ_PORT
+        fromSecret: RABBIT_PORT
+      - key: SPRING_RABBITMQ_USERNAME
+        fromSecret: RABBIT_USERNAME
+      - key: SPRING_RABBITMQ_PASSWORD
+        fromSecret: RABBIT_PASSWORD
+      - key: JWT_KEY_ID
+        fromSecret: JWT_KEY_ID
+      - key: MAIL_USERNAME
+        fromSecret: MAIL_USERNAME
+      - key: MAIL_PASSWORD
+        fromSecret: MAIL_PASSWORD
+      - key: AWS_ACCESS_KEY
+        fromSecret: AWS_ACCESS_KEY
+      - key: AWS_SECRET_KEY
+        fromSecret: AWS_SECRET_KEY
+    startCommand: "java -jar /app/backend.jar"
+
+  - type: web
+    name: grader-worker
+    env: docker
+    plan: free
+    dockerComposePath: ./docker-compose.yml
+    autoDeploy: true
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromSecret: DB_URL
+      - key: SPRING_DATASOURCE_USERNAME
+        fromSecret: DB_USERNAME
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromSecret: DB_PASSWORD
+      - key: SPRING_REDIS_HOST
+        fromSecret: REDIS_HOST
+      - key: SPRING_RABBITMQ_HOST
+        fromSecret: RABBIT_HOST
+      - key: SPRING_RABBITMQ_PORT
+        fromSecret: RABBIT_PORT
+      - key: SPRING_RABBITMQ_USERNAME
+        fromSecret: RABBIT_USERNAME
+      - key: SPRING_RABBITMQ_PASSWORD
+        fromSecret: RABBIT_PASSWORD
+      - key: JWT_KEY_ID
+        fromSecret: JWT_KEY_ID
+      - key: MAIL_USERNAME
+        fromSecret: MAIL_USERNAME
+      - key: MAIL_PASSWORD
+        fromSecret: MAIL_PASSWORD
+      - key: AWS_ACCESS_KEY
+        fromSecret: AWS_ACCESS_KEY
+      - key: AWS_SECRET_KEY
+        fromSecret: AWS_SECRET_KEY
+    startCommand: "sh -c 'sleep 10 && java -jar /app/worker.jar'"
+
+  - type: web
+    name: grader-runner
+    env: docker
+    plan: free
+    dockerComposePath: ./docker-compose.yml
+    autoDeploy: true
+    startCommand: "sh -c 'tail -f /dev/null'" 
+
+  - type: web
+    name: grader-frontend
+    env: docker
+    plan: free
+    dockerComposePath: ./docker-compose.yml
+    autoDeploy: true
+    startCommand: 'sh -c ''sleep 10 && nginx -g "daemon off;"'''
