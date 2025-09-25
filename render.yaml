@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: grader-database
+    name: GraderDatabase
     env: docker
     plan: free
-    dockerfilePath: ./database/Dockerfile
+    dockerfilePath: ./GraderDatabase/Dockerfile
     buildCommand: ""
     startCommand: "docker-entrypoint.sh postgres"
     envVars:
@@ -15,10 +15,10 @@ services:
         fromSecret: DB_PASSWORD
 
   - type: web
-    name: rabbitmq
+    name: GraderRabbitMQ
     env: docker
     plan: free
-    dockerfilePath: ./rabbitmq/Dockerfile
+    dockerfilePath: ./GraderRabbitMQ/Dockerfile
     buildCommand: ""
     startCommand: "rabbitmq-server"
     envVars:
@@ -28,15 +28,15 @@ services:
         fromSecret: RABBIT_PASSWORD
 
   - type: web
-    name: redis
+    name: GraderRedis
     env: docker
     plan: free
-    dockerfilePath: ./redis/Dockerfile
+    dockerfilePath: ./GraderRedis/Dockerfile
     buildCommand: ""
     startCommand: "redis-server"
 
   - type: web
-    name: grader-backend
+    name: GraderBackend
     env: docker
     plan: free
     dockerfilePath: ./GraderBackend/Dockerfile
@@ -44,17 +44,17 @@ services:
     startCommand: "sh -c 'sleep 30 && java -jar /app/backend.jar'"
     envVars:
       - key: SPRING_DATASOURCE_URL
-        value: "jdbc:postgresql://grader-database:5432/${DB_NAME}"
+        value: "jdbc:postgresql://GraderDatabase:5432/${DB_NAME}"
       - key: SPRING_DATASOURCE_USERNAME
         fromSecret: DB_USERNAME
       - key: SPRING_DATASOURCE_PASSWORD
         fromSecret: DB_PASSWORD
       - key: SPRING_REDIS_HOST
-        value: "redis"
+        value: "GraderRedis"
       - key: SPRING_REDIS_PORT
         value: "6379"
       - key: SPRING_RABBITMQ_HOST
-        value: "rabbitmq"
+        value: "GraderRabbitMQ"
       - key: SPRING_RABBITMQ_PORT
         value: "5672"
       - key: SPRING_RABBITMQ_USERNAME
@@ -75,7 +75,7 @@ services:
         value: "8080"
 
   - type: web
-    name: grader-worker
+    name: GraderWorker
     env: docker
     plan: free
     dockerfilePath: ./GraderWorkerApplication/docker/Dockerfile.worker
@@ -83,17 +83,17 @@ services:
     startCommand: "sh -c 'sleep 45 && java -jar /app/worker.jar'"
     envVars:
       - key: SPRING_DATASOURCE_URL
-        value: "jdbc:postgresql://grader-database:5432/${DB_NAME}"
+        value: "jdbc:postgresql://GraderDatabase:5432/${DB_NAME}"
       - key: SPRING_DATASOURCE_USERNAME
         fromSecret: DB_USERNAME
       - key: SPRING_DATASOURCE_PASSWORD
         fromSecret: DB_PASSWORD
       - key: SPRING_REDIS_HOST
-        value: "redis"
+        value: "GraderRedis"
       - key: SPRING_REDIS_PORT
         value: "6379"
       - key: SPRING_RABBITMQ_HOST
-        value: "rabbitmq"
+        value: "GraderRabbitMQ"
       - key: SPRING_RABBITMQ_PORT
         value: "5672"
       - key: SPRING_RABBITMQ_USERNAME
@@ -112,7 +112,7 @@ services:
         fromSecret: AWS_SECRET_KEY
 
   - type: web
-    name: grader-runner
+    name: GraderRunner
     env: docker
     plan: free
     dockerfilePath: ./GraderWorkerApplication/docker/Dockerfile.runner
@@ -120,7 +120,7 @@ services:
     startCommand: "sh -c 'tail -f /dev/null'"
 
   - type: web
-    name: grader-frontend
+    name: GraderFrontend
     env: docker
     plan: free
     dockerfilePath: ./GraderFrontend/Dockerfile
@@ -128,6 +128,6 @@ services:
     startCommand: 'sh -c ''sleep 60 && nginx -g "daemon off;"'''
     envVars:
       - key: BACKEND_URL
-        value: "https://grader-backend.onrender.com"
+        value: "https://GraderBackend.onrender.com"
       - key: PORT
         value: "80"
