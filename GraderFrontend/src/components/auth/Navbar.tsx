@@ -62,19 +62,22 @@ function Navbar() {
 
       {/* Desktop Links */}
       <div className="hidden sm:flex gap-6 items-center">
-        {navLinks.map((link) => (
-          <Link
-            key={link.path}
-            to={link.path}
-            className={`px-8 py-2 rounded-md font-medium ease-in-out trasition-0.5 transition ${
-              currentPath === link.path
-                ? "bg-gradient-to-l from-[#03346E] to-[#17548B] text-white"
-                : "hover:bg-[#17548B] hover:text-white"
-            }`}
-          >
-            {link.name}
-          </Link>
-        ))}
+        {navLinks.map((link) => {
+          if (link.name === "Tags" && user?.role !== "ADMIN") return null; // hide Tags for non-admins
+          return (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`px-8 py-2 rounded-md font-medium ease-in-out trasition-0.5 transition ${
+                currentPath === link.path
+                  ? "bg-gradient-to-l from-[#03346E] to-[#17548B] text-white"
+                  : "hover:bg-[#17548B] hover:text-white"
+              }`}
+            >
+              {link.name}
+            </Link>
+          );
+        })}
 
         {user ? (
           <div ref={dropdownRef} className="relative">
