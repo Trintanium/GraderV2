@@ -4,7 +4,7 @@
  * Could not load the following classes:
  *  com.example.graderbackend.exceptions.JWTException
  */
-package com.example.graderbackend.exceptions;
+package com.example.graderbackend.exception;
 
 public class JWTException
 extends RuntimeException {

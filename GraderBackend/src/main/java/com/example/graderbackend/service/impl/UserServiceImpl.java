@@ -2,6 +2,7 @@ package com.example.graderbackend.service.impl;
 
 import com.example.graderbackend.dto.entity.UserDto;
 import com.example.graderbackend.entity.User;
+import com.example.graderbackend.exception.UserNotFoundException;
 import com.example.graderbackend.repository.UserRepository;
 import com.example.graderbackend.service.AwsS3Service;
 import com.example.graderbackend.service.CurrentSessionService;
@@ -69,7 +70,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> {
                     logger.warn("User not found with id: {}", id);
-                    return new RuntimeException("User not found");
+                    return new UserNotFoundException(id);
                 });
         UserDto dto = mapperService.toDto(user, UserDto.class);
         setProfilePicturePresignedUrl(user, dto, IMG_EXPIRED_ONE_DAYS);
@@ -83,7 +84,7 @@ public class UserServiceImpl implements UserService {
 
         if (Objects.isNull(user)) {
             logger.warn("User not found with email: {}", email);
-            return null;
+            throw new UserNotFoundException(email);
         }
 
         UserDto dto = mapperService.toDto(user, UserDto.class);
@@ -125,7 +126,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
                     logger.warn("User not found with email: {}", email);
-                    return new RuntimeException("User not found");
+                    return new UserNotFoundException(email);
                 });
         deleteUserProfileIfExists(user);
         userRepository.delete(user);
@@ -138,7 +139,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> {
                     logger.warn("User not found with id: {}", id);
-                    return new RuntimeException("User not found");
+                    return new UserNotFoundException(id);
                 });
         deleteUserProfileIfExists(user);
         userRepository.delete(user);

@@ -1,63 +1,54 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  com.example.graderbackend.controller.SubmissionController
- *  com.example.graderbackend.dto.entity.SubmissionDto
- *  com.example.graderbackend.service.SubmissionService
- *  org.springframework.http.ResponseEntity
- *  org.springframework.web.bind.annotation.GetMapping
- *  org.springframework.web.bind.annotation.PathVariable
- *  org.springframework.web.bind.annotation.PostMapping
- *  org.springframework.web.bind.annotation.RequestBody
- *  org.springframework.web.bind.annotation.RequestMapping
- *  org.springframework.web.bind.annotation.RestController
- */
 package com.example.graderbackend.controller;
 
 import com.example.graderbackend.dto.entity.SubmissionDto;
 import com.example.graderbackend.service.SubmissionService;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping(value={"/submissions"})
+@RequestMapping("/submissions")
 public class SubmissionController {
+
     private final SubmissionService submissionService;
 
     public SubmissionController(SubmissionService submissionService) {
         this.submissionService = submissionService;
     }
 
+    // ------------------- CREATE SUBMISSION -------------------
     @PostMapping
     public ResponseEntity<SubmissionDto> createSubmission(@RequestBody SubmissionDto submission) {
-        return ResponseEntity.ok(this.submissionService.createSubmission(submission));
+        SubmissionDto created = submissionService.createSubmission(submission);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created); // 201 Created
     }
 
-    @GetMapping(value={"/all"})
+    // ------------------- GET ALL SUBMISSIONS -------------------
+    @GetMapping("/all")
     public ResponseEntity<List<SubmissionDto>> getAllSubmissions() {
-        return ResponseEntity.ok(this.submissionService.getAllSubmissions());
+        List<SubmissionDto> submissions = submissionService.getAllSubmissions();
+        return ResponseEntity.ok(submissions); // 200 OK
     }
 
-    @GetMapping(value={"/{id}"})
+    // ------------------- GET SUBMISSION BY ID -------------------
+    @GetMapping("/{id}")
     public ResponseEntity<SubmissionDto> getSubmissionById(@PathVariable Long id) {
-        return ResponseEntity.ok(this.submissionService.getSubmissionById(id));
+        SubmissionDto submission = submissionService.getSubmissionById(id);
+        return ResponseEntity.ok(submission); // 200 OK
     }
 
-    @GetMapping(value={"/my/latest"})
+    // ------------------- GET MY LATEST SUBMISSION -------------------
+    @GetMapping("/my/latest")
     public ResponseEntity<SubmissionDto> getMyLatestSubmission() {
-        return ResponseEntity.ok(this.submissionService.getMyLatestSubmission());
+        SubmissionDto submission = submissionService.getMyLatestSubmission();
+        return ResponseEntity.ok(submission); // 200 OK
     }
 
-    @GetMapping(value={"/my"})
+    // ------------------- GET MY SUBMISSIONS -------------------
+    @GetMapping("/my")
     public ResponseEntity<List<SubmissionDto>> getMySubmissions() {
-        return ResponseEntity.ok(this.submissionService.getMySubmissions());
+        List<SubmissionDto> submissions = submissionService.getMySubmissions();
+        return ResponseEntity.ok(submissions); // 200 OK
     }
 }
-

@@ -65,7 +65,7 @@ public class SecurityConfig {
                         // =============================
                         // ProblemController
                         // =============================
-                        .requestMatchers(HttpMethod.GET, "/problem/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/problem/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/problem").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/problem/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/problem/**").hasRole("ADMIN")
@@ -82,7 +82,7 @@ public class SecurityConfig {
                         // SubmissionController
                         // =============================
                         .requestMatchers(HttpMethod.POST, "/submissions").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/submissions/all").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/submissions/all").hasAnyRole("ADMIN","USER")
                         .requestMatchers(HttpMethod.GET, "/submissions/my/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/submissions/{id}").hasAnyRole("USER", "ADMIN") // ตรวจ ownership ใน service
 

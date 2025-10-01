@@ -4,15 +4,18 @@ import com.example.graderbackend.dto.entity.ProblemTagDto;
 import com.example.graderbackend.entity.Problem;
 import com.example.graderbackend.entity.ProblemTag;
 import com.example.graderbackend.entity.Tag;
+import com.example.graderbackend.exception.ProblemNotFoundException;
+import com.example.graderbackend.exception.TagNotFoundException;
 import com.example.graderbackend.repository.ProblemRepository;
 import com.example.graderbackend.repository.ProblemTagRepository;
 import com.example.graderbackend.repository.TagRepository;
 import com.example.graderbackend.service.ModelMapperService;
 import com.example.graderbackend.service.ProblemTagService;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProblemTagServiceImpl implements ProblemTagService {
@@ -46,9 +49,9 @@ public class ProblemTagServiceImpl implements ProblemTagService {
     @Transactional
     public ProblemTagDto createProblemTag(Long problemId, Long tagId) {
         Problem problem = problemRepository.findById(problemId)
-                .orElseThrow(() -> new RuntimeException("Problem not found"));
+                .orElseThrow(() -> new ProblemNotFoundException(problemId));
         Tag tag = tagRepository.findById(tagId)
-                .orElseThrow(() -> new RuntimeException("Tag not found"));
+                .orElseThrow(() -> new TagNotFoundException(tagId));
 
         ProblemTag problemTag = new ProblemTag();
         problemTag.setProblem(problem);
@@ -62,7 +65,7 @@ public class ProblemTagServiceImpl implements ProblemTagService {
     @Transactional
     public void updateProblemTags(Long problemId, List<Long> tagIds) {
         Problem problem = problemRepository.findById(problemId)
-                .orElseThrow(() -> new RuntimeException("Problem not found"));
+                .orElseThrow(() -> new ProblemNotFoundException(problemId));
 
         List<ProblemTag> oldTags = problemTagRepository.findByProblemId(problemId);
         problemTagRepository.deleteAll(oldTags);
@@ -70,7 +73,7 @@ public class ProblemTagServiceImpl implements ProblemTagService {
         List<ProblemTag> newTags = tagIds.stream()
                 .map(tagId -> {
                     Tag tag = tagRepository.findById(tagId)
-                            .orElseThrow(() -> new RuntimeException("Tag not found"));
+                            .orElseThrow(() -> new TagNotFoundException(tagId));
                     ProblemTag pt = new ProblemTag();
                     pt.setProblem(problem);
                     pt.setTag(tag);

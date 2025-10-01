@@ -8,18 +8,23 @@ import com.example.graderbackend.entity.Problem;
 import com.example.graderbackend.entity.Status;
 import com.example.graderbackend.entity.Submission;
 import com.example.graderbackend.entity.User;
+import com.example.graderbackend.exception.NoSubmissionForUserException;
+import com.example.graderbackend.exception.SubmissionNotFoundException;
+import com.example.graderbackend.exception.WorkerSendException;
 import com.example.graderbackend.repository.SubmissionRepository;
 import com.example.graderbackend.repository.TestCaseRepository;
 import com.example.graderbackend.service.CurrentSessionService;
 import com.example.graderbackend.service.ModelMapperService;
 import com.example.graderbackend.service.SubmissionService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 public class SubmissionServiceImpl implements SubmissionService {
 
@@ -59,7 +64,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     public SubmissionDto getSubmissionById(Long id) {
         return submissionRepository.findById(id)
                 .map(sub -> modelMapperService.toDto(sub, SubmissionDto.class))
-                .orElseThrow(() -> new RuntimeException("Submission not found with id " + id));
+                .orElseThrow(() -> new SubmissionNotFoundException(id));
     }
 
     public List<SubmissionDto> getAllSubmissions() {
@@ -74,7 +79,7 @@ public class SubmissionServiceImpl implements SubmissionService {
             submission.setScore(dto.getScore());
             submission.setStatus(dto.getStatus());
             return submissionRepository.save(submission);
-        }).orElseThrow(() -> new RuntimeException("Submission not found with id " + id));
+        }).orElseThrow(() -> new SubmissionNotFoundException(id));
 
         return modelMapperService.toDto(updated, SubmissionDto.class);
     }
@@ -82,7 +87,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     @Transactional
     public void deleteSubmission(Long id) {
         if (!submissionRepository.existsById(id)) {
-            throw new RuntimeException("Submission not found with id " + id);
+            throw new SubmissionNotFoundException(id);
         }
         submissionRepository.deleteById(id);
     }
@@ -90,7 +95,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     @Transactional
     public void updateSubmissionResult(SubmissionResultMessage result) {
         Submission submission = submissionRepository.findById(result.getSubmissionId())
-                .orElseThrow(() -> new RuntimeException("Submission not found with id " + result.getSubmissionId()));
+                .orElseThrow(() -> new SubmissionNotFoundException(result.getSubmissionId()));
 
         submission.setScore(result.getScore());
         submission.setStatus(result.getStatus().equalsIgnoreCase("Accepted") ? Status.ACCEPTED : Status.FAILED);
@@ -101,7 +106,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     public SubmissionDto getMyLatestSubmission() {
         User user = currentSessionService.getCurrentUser();
         Submission submission = submissionRepository.findTopByUser_IdOrderBySubmittedAtDesc(user.getId())
-                .orElseThrow(() -> new RuntimeException("No submissions found for user " + user.getId()));
+                .orElseThrow(() -> new NoSubmissionForUserException(user.getId()));
 
         return modelMapperService.toDto(submission, SubmissionDto.class);
     }
@@ -137,15 +142,20 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
     private void sendToWorker(Submission saved) {
-        List<?> testCases = testCaseRepository.findByProblem_Id(saved.getProblem().getId());
-        List<TestCaseDto> testCaseDtos = modelMapperService.toListDto(testCases, TestCaseDto.class);
-        SubmissionDto submissionDto = modelMapperService.toDto(saved, SubmissionDto.class);
+        try {
+            List<?> testCases = testCaseRepository.findByProblem_Id(saved.getProblem().getId());
+            List<TestCaseDto> testCaseDtos = modelMapperService.toListDto(testCases, TestCaseDto.class);
+            SubmissionDto submissionDto = modelMapperService.toDto(saved, SubmissionDto.class);
 
-        SubmissionSendMessage message = new SubmissionSendMessage();
-        message.setSubmissionId(saved.getId());
-        message.setSubmissionDto(submissionDto);
-        message.setTestCasesDtoList(testCaseDtos);
+            SubmissionSendMessage message = new SubmissionSendMessage();
+            message.setSubmissionId(saved.getId());
+            message.setSubmissionDto(submissionDto);
+            message.setTestCasesDtoList(testCaseDtos);
 
-        submissionProducer.sendSubmission(message);
+            submissionProducer.sendSubmission(message);
+        } catch (Exception e) {
+            log.error("❌ Failed to send submission {} to worker", saved.getId(), e);
+            throw new WorkerSendException("Failed to send submission " + saved.getId() + " to worker", e);
+        }
     }
 }

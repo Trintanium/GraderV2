@@ -1,23 +1,10 @@
-/*
- * Decompiled with CFR 0.152.
- * 
- * Could not load the following classes:
- *  com.example.graderbackend.dto.entity.TestCaseDto
- *  com.example.graderbackend.entity.Problem
- *  com.example.graderbackend.entity.TestCase
- *  com.example.graderbackend.entity.Type
- *  com.example.graderbackend.repository.TestCaseRepository
- *  com.example.graderbackend.service.ModelMapperService
- *  com.example.graderbackend.service.TestCaseService
- *  com.example.graderbackend.service.impl.TestCaseServiceImpl
- *  org.springframework.stereotype.Service
- */
 package com.example.graderbackend.service.impl;
 
 import com.example.graderbackend.dto.entity.TestCaseDto;
 import com.example.graderbackend.entity.Problem;
 import com.example.graderbackend.entity.TestCase;
 import com.example.graderbackend.entity.Type;
+import com.example.graderbackend.exception.TestCaseNotFoundException;
 import com.example.graderbackend.repository.TestCaseRepository;
 import com.example.graderbackend.service.ModelMapperService;
 import com.example.graderbackend.service.TestCaseService;
@@ -26,8 +13,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TestCaseServiceImpl
-implements TestCaseService {
+public class TestCaseServiceImpl implements TestCaseService {
     private final TestCaseRepository testCaseRepository;
     private final ModelMapperService modelMapperService;
 
@@ -36,48 +22,58 @@ implements TestCaseService {
         this.modelMapperService = modelMapperService;
     }
 
+    @Override
     public List<TestCaseDto> getAllTestCases() {
-        return this.modelMapperService.toListDto(this.testCaseRepository.findAll(), TestCaseDto.class);
+        return modelMapperService.toListDto(testCaseRepository.findAll(), TestCaseDto.class);
     }
 
+    @Override
     public TestCaseDto getTestCaseById(Long id) {
-        TestCase testCase = (TestCase)this.testCaseRepository.findById(id).orElseThrow(() -> new RuntimeException("TestCase not found with id " + id));
-        return (TestCaseDto)this.modelMapperService.toDto(testCase, TestCaseDto.class);
+        TestCase testCase = testCaseRepository.findById(id)
+                .orElseThrow(() -> new TestCaseNotFoundException(id));
+        return modelMapperService.toDto(testCase, TestCaseDto.class);
     }
 
+    @Override
     public List<TestCaseDto> getTestCasesByProblemId(Long problemId) {
-        List testCases = this.testCaseRepository.findByProblem_Id(problemId);
-        return this.modelMapperService.toListDto(testCases, TestCaseDto.class);
+        List<TestCase> testCases = testCaseRepository.findByProblem_Id(problemId);
+        return modelMapperService.toListDto(testCases, TestCaseDto.class);
     }
 
+    @Override
     public TestCaseDto createTestCase(TestCaseDto dto) {
         TestCase testCase = new TestCase();
         testCase.setProblem(new Problem());
         testCase.getProblem().setId(dto.getProblemId());
         testCase.setInput(dto.getInput());
         testCase.setOutput(dto.getOutput());
-        testCase.setType(Type.valueOf((String)dto.getType()));
+        testCase.setType(Type.valueOf(dto.getType()));
         testCase.setCreatedAt(LocalDateTime.now());
-        TestCase saved = (TestCase)this.testCaseRepository.save(testCase);
-        return (TestCaseDto)this.modelMapperService.toDto(saved, TestCaseDto.class);
+
+        TestCase saved = testCaseRepository.save(testCase);
+        return modelMapperService.toDto(saved, TestCaseDto.class);
     }
 
+    @Override
     public TestCaseDto updateTestCase(Long id, TestCaseDto dto) {
-        TestCase updated = this.testCaseRepository.findById(id).map(testCase -> {
-            testCase.setInput(dto.getInput());
-            testCase.setOutput(dto.getOutput());
-            testCase.setType(Type.valueOf((String)dto.getType()));
-            testCase.setUpdatedAt(LocalDateTime.now());
-            return (TestCase)this.testCaseRepository.save(testCase);
-        }).orElseThrow(() -> new RuntimeException("TestCase not found with id " + id));
-        return (TestCaseDto)this.modelMapperService.toDto(updated, TestCaseDto.class);
+        TestCase updated = testCaseRepository.findById(id)
+                .map(testCase -> {
+                    testCase.setInput(dto.getInput());
+                    testCase.setOutput(dto.getOutput());
+                    testCase.setType(Type.valueOf(dto.getType()));
+                    testCase.setUpdatedAt(LocalDateTime.now());
+                    return testCaseRepository.save(testCase);
+                })
+                .orElseThrow(() -> new TestCaseNotFoundException(id));
+
+        return modelMapperService.toDto(updated, TestCaseDto.class);
     }
 
+    @Override
     public void deleteTestCase(Long id) {
-        if (!this.testCaseRepository.existsById(id)) {
-            throw new RuntimeException("TestCase not found with id " + id);
+        if (!testCaseRepository.existsById(id)) {
+            throw new TestCaseNotFoundException(id);
         }
-        this.testCaseRepository.deleteById(id);
+        testCaseRepository.deleteById(id);
     }
 }
-

@@ -14,14 +14,15 @@ package com.example.graderbackend.service.impl;
 
 import com.example.graderbackend.dto.meesageQ.SubmissionResultMessage;
 import com.example.graderbackend.service.SubmissionService;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class SubmissionConsumer {
-    private static final Logger logger = LoggerFactory.getLogger(SubmissionConsumer.class);
     private final SubmissionService submissionService;
 
     public SubmissionConsumer(SubmissionService submissionService) {
@@ -31,10 +32,10 @@ public class SubmissionConsumer {
     @RabbitListener(queues={"${rabbitmq.queue.result}"})
     public void handleResult(SubmissionResultMessage result) {
         if (result.getSubmissionId() == null) {
-            logger.warn("Received result with null submissionId: {}", (Object)result);
+            log.warn("Received result with null submissionId: {}", result);
             return;
         }
-        logger.info("Received result for submissionId: {}", (Object)result.getSubmissionId());
+        log.info("Received result for submissionId: {}", result.getSubmissionId());
         this.submissionService.updateSubmissionResult(result);
     }
 }

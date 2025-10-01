@@ -5,7 +5,7 @@
  *  com.example.graderbackend.exceptions.JWTException
  *  com.example.graderbackend.exceptions.JWTExpiredException
  */
-package com.example.graderbackend.exceptions;
+package com.example.graderbackend.exception;
 
 public class JWTExpiredException
 extends JWTException {

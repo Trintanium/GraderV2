@@ -6,6 +6,8 @@ import com.example.graderbackend.entity.Difficulty;
 import com.example.graderbackend.entity.Problem;
 import com.example.graderbackend.entity.ProblemTag;
 import com.example.graderbackend.entity.Tag;
+import com.example.graderbackend.exception.InvalidFileFormatException;
+import com.example.graderbackend.exception.ProblemNotFoundException;
 import com.example.graderbackend.repository.ProblemRepository;
 import com.example.graderbackend.service.AwsS3Service;
 import com.example.graderbackend.service.ModelMapperService;
@@ -81,7 +83,8 @@ public class ProblemServiceImpl implements ProblemService {
         }
 
         Problem problem = problemRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Problem not found"));
+                .orElseThrow(() -> new ProblemNotFoundException(id));
+
         ProblemDto dto = mapperService.toDto(problem, ProblemDto.class);
         setPdfPresignedUrl(problem, dto);
         cacheProblemDto(dto);
@@ -91,7 +94,7 @@ public class ProblemServiceImpl implements ProblemService {
     @Override
     public List<TagDto> getTagsByProblemId(Long problemId) {
         Problem problem = problemRepository.findById(problemId)
-                .orElseThrow(() -> new RuntimeException("Problem not found"));
+                .orElseThrow(() -> new ProblemNotFoundException(problemId));
 
         return problem.getProblemTags().stream()
                 .map(pt -> new TagDto(pt.getTag().getId(), pt.getTag().getName()))
@@ -121,7 +124,7 @@ public class ProblemServiceImpl implements ProblemService {
     @Override
     public ProblemDto updateProblem(Long id, String title, String difficulty, MultipartFile pdf, List<Long> tagIds) throws IOException {
         Problem problem = problemRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Problem not found"));
+                .orElseThrow(() -> new ProblemNotFoundException(id));
 
         problem.setTitle(title);
         problem.setDifficulty(Difficulty.valueOf(difficulty));
@@ -161,7 +164,7 @@ public class ProblemServiceImpl implements ProblemService {
     @Override
     public void deleteProblem(Long id) {
         Problem problem = problemRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Problem not found"));
+                .orElseThrow(() -> new ProblemNotFoundException(id));
 
         deletePdfIfExists(problem);
         problemRepository.delete(problem);
@@ -189,8 +192,9 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     private void validatePdfFile(MultipartFile pdf) {
-        if (pdf.getOriginalFilename() == null || !pdf.getOriginalFilename().toLowerCase().endsWith(".pdf")) {
-            throw new IllegalArgumentException("File must be PDF");
+        String filename = pdf.getOriginalFilename();
+        if (filename == null || !filename.toLowerCase().endsWith(".pdf")) {
+            throw new InvalidFileFormatException(filename == null ? "unknown" : filename);
         }
     }
 

@@ -3,6 +3,9 @@ package com.example.graderbackend.service.impl;
 import com.example.graderbackend.dto.entity.UserDto;
 import com.example.graderbackend.entity.EmailVerification;
 import com.example.graderbackend.entity.User;
+import com.example.graderbackend.exception.EmailSendingException;
+import com.example.graderbackend.exception.InvalidPasswordException;
+import com.example.graderbackend.exception.InvalidTokenException;
 import com.example.graderbackend.repository.EmailVerificationRepository;
 import com.example.graderbackend.repository.UserRepository;
 import com.example.graderbackend.service.EmailVerificationService;
@@ -35,9 +38,6 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
     @Autowired
     private ModelMapperServiceImpl mapperService;
 
-    /**
-     * สร้าง token สำหรับ email verification
-     */
     public EmailVerification createEmailVerification(User user) {
         EmailVerification emailVerification = new EmailVerification();
         emailVerification.setToken(UUID.randomUUID().toString());
@@ -46,9 +46,6 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         return emailVerificationRepository.save(emailVerification);
     }
 
-    /**
-     * ตรวจสอบ email token และ return UserDto
-     */
     public Optional<UserDto> verifyEmailAndReturnUser(String token) {
         return getValidEmailToken(token).map(v -> {
             v.setUsed(true);
@@ -62,15 +59,12 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         });
     }
 
-    /**
-     * รีเซ็ตรหัสผ่านจาก token
-     */
     public boolean resetPassword(String token, String newPassword, String confirmPassword) {
         return getValidEmailToken(token).map(v -> {
             User user = v.getUser();
 
             if (passwordEncoder.matches(newPassword, user.getPassword())) {
-                throw new RuntimeException("Invalid password");
+                throw new InvalidPasswordException();
             }
 
             user.setPassword(passwordEncoder.encode(newPassword));
@@ -80,27 +74,18 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
             emailVerificationRepository.save(v);
 
             return true;
-        }).orElse(false);
+        }).orElseThrow(() -> new InvalidTokenException(token));
     }
 
-    /**
-     * ตรวจสอบว่า token ยัง valid อยู่หรือไม่
-     */
     public boolean isValidEmailToken(String token) {
         return getValidEmailToken(token).isPresent();
     }
 
-    /**
-     * ดึง token ที่ยัง valid
-     */
     public Optional<EmailVerification> getValidEmailToken(String token) {
         return emailVerificationRepository.findByToken(token)
                 .filter(v -> !v.isUsed() && v.getExpiry().isAfter(LocalDateTime.now()));
     }
 
-    /**
-     * ส่ง email ยืนยันอีเมล
-     */
     public void sendVerificationEmail(EmailVerification emailVerification) {
         String frontendUrl = "http://localhost:5173/email/verify";
         sendEmail(
@@ -112,9 +97,6 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         );
     }
 
-    /**
-     * ส่ง email รีเซ็ตรหัสผ่าน
-     */
     public void sendForgotPasswordEmail(EmailVerification emailVerification) {
         String frontendUrl = "http://localhost:5173/password/reset";
         sendEmail(
@@ -126,9 +108,6 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         );
     }
 
-    /**
-     * ส่ง email HTML
-     */
     public void sendEmail(String email, String token, String subject, String frontendUrl, String message) {
         try {
             String actionUrl = frontendUrl + "?token=" + token;
@@ -154,7 +133,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
 
             mailSender.send(mimeMessage);
         } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send email", e);
+            throw new EmailSendingException(e);
         }
     }
 }

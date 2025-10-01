@@ -118,8 +118,7 @@ implements AuthService {
     }
 
     public void forgotPasswordVerification(String email) {
-        System.out.println(email);
-        User user = (User)this.userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User user = this.userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found"));
         if (!user.isEmailVerified()) {
             throw new IllegalArgumentException("Email not verified");
         }

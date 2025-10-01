@@ -32,8 +32,8 @@ package com.example.graderbackend.security;
 
 import com.example.graderbackend.dto.TokenResponse;
 import com.example.graderbackend.entity.User;
-import com.example.graderbackend.exceptions.JWTExpiredException;
-import com.example.graderbackend.exceptions.JWTInvalidException;
+import com.example.graderbackend.exception.JWTExpiredException;
+import com.example.graderbackend.exception.JWTInvalidException;
 import com.example.graderbackend.model.AuthUserDetails;
 import com.example.graderbackend.repository.UserRepository;
 import com.nimbusds.jose.JOSEException;
